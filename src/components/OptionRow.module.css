@@ -1,0 +1,91 @@
+.row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s, transform 0.05s;
+}
+.row:hover {
+  border-color: var(--text-dim);
+}
+.row:active {
+  transform: translateY(1px);
+}
+.selected {
+  border-color: var(--brass);
+  background: var(--brass-dim);
+}
+
+.rank {
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 26px;
+}
+.selected .rank {
+  color: var(--brass);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.brandLine {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.brand {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.tier {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid currentColor;
+  line-height: 1;
+}
+.tierPremium {
+  color: var(--tier-premium);
+}
+.tierMid {
+  color: var(--tier-mid);
+}
+.tierBudget {
+  color: var(--tier-budget);
+}
+
+.chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.chip {
+  font-size: 11px;
+  color: var(--text-dim);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+.price {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+.selected .price {
+  color: var(--brass);
+}

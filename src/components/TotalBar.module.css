@@ -1,0 +1,75 @@
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--brass-line);
+  border-radius: var(--radius);
+  flex-wrap: wrap;
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.count {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+}
+.of {
+  color: var(--text-dim);
+  font-size: 14px;
+}
+.countLabel {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.band {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-end;
+  margin-left: auto;
+}
+.bandLabel {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.bandVal {
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.right {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-end;
+}
+.totalLabel {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.total {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--brass);
+  line-height: 1;
+}
+.over {
+  color: var(--error);
+}
+.under {
+  color: var(--warn);
+}

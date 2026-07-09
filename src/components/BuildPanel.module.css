@@ -1,0 +1,119 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--bg);
+  border-left: 1px solid var(--line);
+}
+
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.goalRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.goalField {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 160px;
+}
+.goalLabel {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.select {
+  font-family: var(--font-title);
+  font-size: 15px;
+  padding: 9px 10px;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+.select:hover {
+  border-color: var(--text-dim);
+}
+
+.applyBtn {
+  font-size: 12px;
+  padding: 9px 14px;
+  background: var(--brass-dim);
+  color: var(--brass);
+  border: 1px solid var(--brass-line);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+.applyBtn:hover {
+  background: rgba(200, 150, 62, 0.24);
+}
+
+.goalBlurb {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.45;
+}
+.manualNote {
+  color: var(--brass);
+}
+
+.categories {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.compliance {
+  margin: 6px 0 4px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-dim);
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.complianceTag {
+  display: inline-block;
+  margin-right: 8px;
+  font-size: 10px;
+  color: var(--brass);
+  border: 1px solid var(--brass-line);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.totalWrap {
+  padding: 12px 18px 18px;
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+}
+
+/* Single column below ~860px: let the page scroll instead of nesting a scroll */
+@media (max-width: 860px) {
+  .panel {
+    height: auto;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+  .scroll {
+    overflow-y: visible;
+  }
+  .totalWrap {
+    position: sticky;
+    bottom: 0;
+  }
+}

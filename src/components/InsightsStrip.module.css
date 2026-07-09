@@ -1,0 +1,130 @@
+.wrap {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+}
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.title {
+  font-size: 14px;
+}
+.badge {
+  font-size: 12px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--text-dim);
+}
+.badgeActive {
+  background: var(--brass-dim);
+  border-color: var(--brass-line);
+  color: var(--brass);
+}
+
+.clean {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.checkmark {
+  color: #6fbf8f;
+  font-weight: 700;
+}
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.groupLabel {
+  font-size: 11px;
+}
+.error {
+  color: var(--error);
+}
+.warn {
+  color: var(--warn);
+}
+.tip {
+  color: var(--tip);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-left-width: 3px;
+  border-radius: var(--radius-sm);
+}
+.errorItem {
+  border-left-color: var(--error);
+}
+.warnItem {
+  border-left-color: var(--warn);
+}
+.tipItem {
+  border-left-color: var(--tip);
+}
+.clickable {
+  cursor: pointer;
+}
+.clickable:hover {
+  border-color: var(--brass);
+  border-left-color: var(--brass);
+}
+.item:disabled {
+  cursor: default;
+}
+
+.dot {
+  margin-top: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.errorItem .dot {
+  background: var(--error);
+}
+.warnItem .dot {
+  background: var(--warn);
+}
+.tipItem .dot {
+  background: var(--tip);
+}

@@ -1,0 +1,105 @@
+/* ============================================================
+   Design tokens — machined-steel theme
+   ============================================================ */
+:root {
+  /* Palette */
+  --bg: #121417;
+  --surface: #1a1d22;
+  --surface-2: #21252c;
+  --line: #2c313a;
+  --text: #e9ebef;
+  --text-dim: #8b929d;
+  --brass: #c8963e;
+  --brass-dim: rgba(200, 150, 62, 0.16);
+  --brass-line: rgba(200, 150, 62, 0.45);
+
+  /* Severity accents (used by the insight engine) */
+  --error: #e06a5b;
+  --warn: #d8a13a;
+  --tip: #6fa8c7;
+
+  /* Type */
+  --font-title: 'Saira Condensed', 'Arial Narrow', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', 'Consolas', monospace;
+
+  /* Rhythm */
+  --radius: 8px;
+  --radius-sm: 5px;
+  --gap: 16px;
+  --shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+
+  /* Tier badge colors */
+  --tier-premium: #cbb26a;
+  --tier-mid: #8fa1b3;
+  --tier-budget: #7f8a7c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-title);
+  font-size: 16px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Data — prices, ranks, counters — always mono */
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Condensed-caps titles */
+.title-caps {
+  font-family: var(--font-title);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+/* ---- Accessibility: visible focus rings ---- */
+:where(button, a, input, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Remove default button chrome; components restyle */
+button {
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* ---- Reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
