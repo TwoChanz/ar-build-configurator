@@ -1,8 +1,9 @@
-import { createContext, useContext, useMemo, useReducer } from 'react'
+import { createContext, useContext, useEffect, useMemo, useReducer } from 'react'
 import type { Dispatch, ReactNode } from 'react'
 
 import { PARTS } from '../data/parts'
 import { buildDefaults } from './selectors'
+import { loadInitial, saveToStorage } from './persist'
 import type { Archetype, BudgetLevel, Category, CategoryId, MeshKey, Selection, Tier } from '../types'
 
 /* ---------- lookups ---------- */
@@ -40,6 +41,19 @@ export const initialState: State = {
   manual: {},
   openCategory: null,
   highlight: [],
+}
+
+/** Seed state from a share link / localStorage, falling back to defaults. */
+function makeInitialState(): State {
+  const restored = loadInitial()
+  if (!restored) return initialState
+  return {
+    ...initialState,
+    archetype: restored.archetype,
+    budgetLevel: restored.budgetLevel,
+    selection: restored.selection,
+    hasChosen: restored.hasChosen,
+  }
 }
 
 export type Action =
@@ -125,7 +139,18 @@ function reducer(state: State, action: Action): State {
 const StoreContext = createContext<{ state: State; dispatch: Dispatch<Action> } | null>(null)
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const [state, dispatch] = useReducer(reducer, null, makeInitialState)
+
+  // Silently persist the build so a refresh restores it.
+  useEffect(() => {
+    saveToStorage({
+      archetype: state.archetype,
+      budgetLevel: state.budgetLevel,
+      selection: state.selection,
+      hasChosen: state.hasChosen,
+    })
+  }, [state.archetype, state.budgetLevel, state.selection, state.hasChosen])
+
   const value = useMemo(() => ({ state, dispatch }), [state])
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>
 }

@@ -29,7 +29,13 @@ npm install
 npm run dev       # http://localhost:5173
 npm run build     # type-checks (tsc -b) then builds to dist/
 npm run preview   # serve the production build
+npm test          # run the rules-engine / selectors / export test suite (Vitest)
 ```
+
+Builds are **saved to localStorage** (a refresh restores your build) and can be
+**shared as a link** (`…#b=<encoded>`) or **exported** as a copyable parts list
+or a CSV. Shared/stored builds are validated against the current catalog, so a
+stale link can never inject unknown parts.
 
 ## Project structure
 

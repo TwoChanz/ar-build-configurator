@@ -1,3 +1,4 @@
+import { BuildActions } from './BuildActions'
 import { CategoryAccordion } from './CategoryAccordion'
 import { InsightsStrip } from './InsightsStrip'
 import { QuickFillBar } from './QuickFillBar'
@@ -75,6 +76,8 @@ export function BuildPanel({ total, count, insights, priceBand }: BuildPanelProp
         </div>
 
         <QuickFillBar />
+
+        <BuildActions />
 
         <InsightsStrip insights={insights} goalName={`${archDef.name} · ${levelDef.name}`} />
 
