@@ -10,14 +10,21 @@ interface OptionRowProps {
   onSelect: () => void
 }
 
+const FIRE_CONTROL_LABEL: Record<NonNullable<Option['fireControl']>, string> = {
+  frt: 'FRT · forced-reset',
+  binary: 'binary trigger',
+  'super-safety': '3-way Super Safety',
+  standard: 'standard',
+}
+
 /** Small attribute chips for the rule-relevant fields, when present. */
 function attrChips(o: Option): string[] {
   const chips: string[] = []
   if (o.lengthIn !== undefined) chips.push(`${o.lengthIn}"`)
   if (o.gas) chips.push(`${o.gas} gas`)
   if (o.bufferWeight) chips.push(o.bufferWeight === 'carbine' ? 'carbine buffer' : `${o.bufferWeight} buffer`)
-  if (o.selectorType) chips.push(o.selectorType === 'g-lever' ? 'G-Lever' : 'mil-spec')
-  if (o.triggerType) chips.push(o.triggerType === 'geissele' ? 'Geissele-type' : 'mil-spec FCG')
+  if (o.fireControl) chips.push(FIRE_CONTROL_LABEL[o.fireControl])
+  if (o.bcgProfile) chips.push(o.bcgProfile === 'full-auto' ? 'full-auto profile' : 'semi profile')
   return chips
 }
 

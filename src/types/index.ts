@@ -1,27 +1,27 @@
 /**
- * Shared domain types for the AR build configurator.
- * No `any` anywhere — every selection, archetype, tier, and derived insight is typed.
+ * Shared domain types for the FRT / Super-Safety build configurator.
+ * No `any` anywhere — every selection, platform, tier, and derived insight is typed.
  */
 
 /* ---------- Parts catalog ---------- */
 
 export type Tier = 'Premium' | 'Mid' | 'Budget'
 
-/** Barrel gas-system length. Drives the cycling-reliability rules. */
+/** Barrel gas-system length. Drives the cycling / reset-reliability rules. */
 export type GasSystem = 'pistol' | 'carbine' | 'mid' | 'rifle'
 
-/** Buffer weight class. Drives the short-barrel dwell-time rule. */
+/** Buffer weight class. Drives the reset-timing rules. */
 export type BufferWeight = 'carbine' | 'H2' | 'H3' | 'rifle'
 
-/** Safety-selector compatibility class. */
-export type SelectorType =
-  | 'mil-spec' // standard fire-control-group geometry
-  | 'g-lever' // Atrius G-Lever — clears the Geissele-trigger interference
+/**
+ * Fire-control character of a trigger or safety selector.
+ *  - trigger options:  'standard' | 'frt' | 'binary'
+ *  - selector options: 'standard' | 'super-safety'  (three-way safety)
+ */
+export type FireControl = 'standard' | 'frt' | 'binary' | 'super-safety'
 
-/** Trigger geometry class. */
-export type TriggerType =
-  | 'mil-spec' // standard single/two-stage, plays nice with any selector
-  | 'geissele' // Geissele-type — hammer/selector interference with mil-spec-only ambi selectors
+/** Bolt-carrier profile. Full-auto (M16) carriers are heavier. */
+export type BcgProfile = 'full-auto' | 'semi'
 
 /**
  * A single purchasable option within a category, ordered best -> value.
@@ -42,10 +42,10 @@ export interface Option {
   gas?: GasSystem
   /** Buffer: weight class. */
   bufferWeight?: BufferWeight
-  /** Safety selector: compatibility class. */
-  selectorType?: SelectorType
-  /** Trigger: geometry class. */
-  triggerType?: TriggerType
+  /** Trigger / selector: fire-control character. */
+  fireControl?: FireControl
+  /** BCG: carrier profile. */
+  bcgProfile?: BcgProfile
 }
 
 /** The 13 component groups. Each id is also referenced by rules + defaults. */
@@ -78,9 +78,9 @@ export interface Category {
   options: Option[]
 }
 
-/* ---------- Build archetype (purpose) — independent of price ---------- */
+/* ---------- Fire-control platform (the build type) — independent of price ---------- */
 
-export type Archetype = 'general' | 'cqb' | 'truck' | 'range' | 'lightweight' | 'none'
+export type Archetype = 'super-safety' | 'frt' | 'binary' | 'standard'
 
 /** A per-budget-level option choice for a category (falls back to tier best). */
 export type LevelChoice = Partial<Record<BudgetLevel, string>>
@@ -90,14 +90,15 @@ export interface ArchetypeDef {
   name: string
   blurb: string
   /**
-   * Character-defining part choices, per budget level. e.g. a CQB build picks a
-   * short barrel + red dot regardless of price; the level only shifts quality.
-   * Anything not listed falls back to the best option at the level's tier.
+   * Character-defining part choices, per budget level. The platform pins the
+   * fire-control device plus the parts that make it run (BCG profile, buffer,
+   * barrel/gas); the budget level only shifts quality. Anything not listed
+   * falls back to the best option at the level's tier.
    */
   overrides?: Partial<Record<CategoryId, LevelChoice>>
 }
 
-/* ---------- Budget level (price) — independent of archetype ---------- */
+/* ---------- Budget level (price) — independent of platform ---------- */
 
 export type BudgetLevel = 'budget' | 'mid' | 'high'
 
@@ -105,7 +106,7 @@ export interface BudgetLevelDef {
   id: BudgetLevel
   name: string
   blurb: string
-  /** Which catalog tier fills categories the archetype doesn't pin. */
+  /** Which catalog tier fills categories the platform doesn't pin. */
   tier: Tier
 }
 
@@ -129,7 +130,7 @@ export interface BuildContext {
   selected: Partial<Record<CategoryId, Option>>
   /** Running total of the currently-selected options. */
   total: number
-  /** Top of the target price band for the current archetype + level. */
+  /** Top of the target price band for the current platform + level. */
   bandMax: number
 }
 
@@ -144,7 +145,7 @@ export interface Rule {
   message: string
   /** Returns true when the rule *fires* (i.e. the condition is present). */
   test: (ctx: BuildContext) => boolean
-  /** Only evaluate for these archetypes. Omit = applies to every archetype. */
+  /** Only evaluate for these platforms. Omit = applies to every platform. */
   appliesToArchetype?: Archetype[]
   /** Component groups this rule references — clicking it highlights them. */
   highlight?: MeshKey[]

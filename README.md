@@ -1,14 +1,20 @@
-# AR Build Configurator
+# FRT / Super-Safety Build Configurator
 
-An interactive AR-15 **build-planning / shopping tool**. Pick a build goal, get
-sensible default parts and a target price band, swap components across a 13-part
-catalog, and watch a data-driven compatibility engine flag conflicts in real
-time — all next to an abstract 3D schematic that shows *where each part goes*.
+An interactive **build-planning / shopping tool** for AR-15 builds centered on a
+fire-control device — a **forced-reset trigger (FRT)**, a **binary trigger**, or
+a **Super Safety (three-way) selector**. Pick the platform, then a price level;
+get sensible default parts and a target price band; swap components across a
+13-part catalog; and watch a data-driven engine flag device conflicts and the
+reliability issues (BCG profile, buffer weight, gas/dwell) that make these
+devices run — all next to a 3D schematic whose barrel/handguard length is
+parametric.
 
-> This is a planning tool. Prices/tiers are **approximate estimates, not
-> endorsements**, and nothing here is legal advice. The lower receiver is the
-> regulated part; configuration legality varies by state — confirm legality for
-> your jurisdiction before buying or assembling.
+> **Planning tool only.** Prices/tiers are approximate estimates, not
+> endorsements. Forced-reset, binary, and three-way "Super Safety" devices sit
+> in a contested, fast-changing legal space — the ATF has classified some as
+> machine guns and many states ban them. Nothing here is legal advice or
+> installation instructions. Confirm current federal ATF classification and your
+> state/local law before buying or assembling anything.
 
 ## Stack
 
@@ -57,10 +63,11 @@ src/
 ## How the insight engine works
 
 Each `Rule` has a `severity` (`error` | `warn` | `tip`), a `message`, a `test`
-predicate, an optional `appliesToGoal` filter, and optional `highlight` mesh
-keys. The Insights strip evaluates every rule against the live selection + goal,
-groups results by severity, and clicking a message highlights the referenced
-component groups on the 3D model. Shipped rules include gas-system/barrel-length
-cycling mismatches, short-barrel buffer weight, the Geissele-trigger vs
-mil-spec-selector conflict (resolved by the Atrius G-Lever), handguard/barrel
-clearance, and goal-fit budget tips.
+predicate, an optional `appliesToArchetype` filter, and optional `highlight`
+mesh keys. The Insights strip evaluates every rule against the live selection +
+platform, groups results by severity, and clicking a message highlights the
+referenced component groups on the 3D model. Shipped rules include: FRT/binary +
+Super-Safety device conflict, full-auto BCG profile for reliable reset timing,
+buffer-weight (H2) tuning, gas/dwell adequacy (carbine-gas preferred for forced
+reset), gas-length cycling mismatch, handguard/barrel clearance, an always-on
+legal-caution tip when a device is present, and an over-budget tip.

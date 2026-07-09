@@ -44,9 +44,11 @@ export function App() {
           <span className={styles.mark} aria-hidden>
             ▮▮▮
           </span>
-          <h1 className={`${styles.title} title-caps`}>AR Build Configurator</h1>
+          <h1 className={`${styles.title} title-caps`}>FRT / Super-Safety Configurator</h1>
         </div>
-        <span className={styles.tagline}>Parts planning · compatibility insights · not legal advice</span>
+        <span className={styles.tagline}>
+          Planning builds around forced-reset triggers &amp; 3-way safeties · not legal advice
+        </span>
       </header>
 
       <main className={styles.main}>

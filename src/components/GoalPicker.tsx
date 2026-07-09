@@ -9,21 +9,12 @@ import styles from './GoalPicker.module.css'
 
 /**
  * First-run picker, two steps:
- *   1. Build type (archetype) — the purpose, independent of price.
+ *   1. Fire-control platform (Super Safety / FRT / Binary / Standard).
  *   2. Budget level — the price tier, shown with live ranges for that build.
- * "No Preference" skips straight in with tier defaults left blank.
  */
 export function GoalPicker() {
   const { dispatch } = useStore()
   const [pending, setPending] = useState<Archetype | null>(null)
-
-  const chooseArchetype = (archetype: Archetype) => {
-    if (archetype === 'none') {
-      dispatch({ type: 'CHOOSE', archetype, budgetLevel: 'mid', applyDefaults: false })
-      return
-    }
-    setPending(archetype)
-  }
 
   const pendingDef = pending ? ARCHETYPES.find((a) => a.id === pending) : null
 
@@ -34,10 +25,11 @@ export function GoalPicker() {
           <>
             <header className={styles.header}>
               <h1 id="goal-title" className={`${styles.title} title-caps`}>
-                What are you building?
+                Pick your fire-control platform
               </h1>
               <p className={styles.sub}>
-                Pick the build type. Next you'll choose a price level — change anything later.
+                Choose the device the build is centered on. Next you'll pick a price level — change
+                anything later.
               </p>
             </header>
 
@@ -47,13 +39,11 @@ export function GoalPicker() {
                   key={a.id}
                   type="button"
                   className={styles.card}
-                  onClick={() => chooseArchetype(a.id)}
+                  onClick={() => setPending(a.id)}
                 >
                   <span className={`${styles.name} title-caps`}>{a.name}</span>
                   <span className={styles.blurb}>{a.blurb}</span>
-                  <span className={styles.step1cta}>
-                    {a.id === 'none' ? 'Start exploring →' : 'Choose price →'}
-                  </span>
+                  <span className={styles.step1cta}>Choose price →</span>
                 </button>
               ))}
             </div>

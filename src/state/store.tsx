@@ -33,7 +33,7 @@ export interface State {
 }
 
 export const initialState: State = {
-  archetype: 'none',
+  archetype: 'standard',
   budgetLevel: 'mid',
   hasChosen: false,
   selection: {},

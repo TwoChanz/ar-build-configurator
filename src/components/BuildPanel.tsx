@@ -23,9 +23,9 @@ export function BuildPanel({ total, count, insights, priceBand }: BuildPanelProp
   return (
     <aside className={styles.panel}>
       <div className={styles.scroll}>
-        {/* Build type (archetype) */}
+        {/* Fire-control platform (archetype) */}
         <label className={styles.field}>
-          <span className={`${styles.fieldLabel} title-caps`}>Build type</span>
+          <span className={`${styles.fieldLabel} title-caps`}>Fire control</span>
           <select
             className={styles.select}
             value={state.archetype}
@@ -101,12 +101,7 @@ export function BuildPanel({ total, count, insights, priceBand }: BuildPanelProp
       </div>
 
       <div className={styles.totalWrap}>
-        <TotalBar
-          total={total}
-          count={count}
-          priceBand={priceBand}
-          showBand={state.archetype !== 'none'}
-        />
+        <TotalBar total={total} count={count} priceBand={priceBand} showBand />
       </div>
     </aside>
   )

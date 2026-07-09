@@ -1,29 +1,109 @@
-import type { Rule } from '../types'
+import type { BuildContext, Rule } from '../types'
 
 /**
  * RULES — the compatibility + insight engine, expressed as data.
  *
- * Each rule is a pure predicate over the current build (BuildContext). The UI
- * evaluates every rule against the live selection and surfaces ONLY the
- * `message` strings whose `test` returns true. Nothing is invented at runtime.
+ * The focus is making a forced-reset / binary / Super-Safety build actually
+ * cycle and reset reliably, plus flagging the device conflicts and the legal
+ * reality. Each rule is a pure predicate over the current build (BuildContext).
+ * The UI surfaces ONLY the `message` strings whose `test` returns true.
  *
  * To add an insight: append one object here. Nothing else changes.
- *
- * `test` returns true when the rule FIRES (the flagged condition is present).
- * Comments cite the mechanical reason for each rule.
  */
+
+/** Resolve the device situation from the current build. */
+function devices(ctx: BuildContext) {
+  const trig = ctx.selected.trigger
+  const sel = ctx.selected.selector
+  const rapidTrigger = trig?.fireControl === 'frt' || trig?.fireControl === 'binary'
+  const superSafety = sel?.fireControl === 'super-safety'
+  return { trig, sel, rapidTrigger, superSafety, hasDevice: rapidTrigger || superSafety }
+}
+
 export const RULES: Rule[] = [
+  /* ---------- platform guidance: is the device actually selected? ---------- */
+  {
+    id: 'ss-needs-selector',
+    severity: 'tip',
+    appliesToArchetype: ['super-safety'],
+    highlight: ['selector'],
+    message:
+      'Super-Safety build: choose a 3-way Super Safety selector in the Safety Selector category — that third position is what provides the forced reset.',
+    test: (ctx) => ctx.selected.selector?.fireControl !== 'super-safety',
+  },
+  {
+    id: 'frt-needs-trigger',
+    severity: 'tip',
+    appliesToArchetype: ['frt'],
+    highlight: ['trigger'],
+    message: 'FRT build: choose a forced-reset trigger in the Trigger category.',
+    test: (ctx) => ctx.selected.trigger?.fireControl !== 'frt',
+  },
+  {
+    id: 'binary-needs-trigger',
+    severity: 'tip',
+    appliesToArchetype: ['binary'],
+    highlight: ['trigger'],
+    message: 'Binary build: choose a binary (pull-and-release) trigger in the Trigger category.',
+    test: (ctx) => ctx.selected.trigger?.fireControl !== 'binary',
+  },
+
+  /* ---------- device vs device conflict ---------- */
+  {
+    id: 'device-redundant-conflict',
+    severity: 'error',
+    highlight: ['trigger', 'selector'],
+    // Two independent forced-reset methods at once — a rapid trigger AND a
+    // Super Safety selector — is redundant and the two mechanisms can fight each
+    // other's timing. Run one method, not both.
+    message:
+      'Two forced-reset methods at once — a rapid trigger and a Super Safety selector. They are redundant and can fight each other. Pick one method.',
+    test: (ctx) => {
+      const { rapidTrigger, superSafety } = devices(ctx)
+      return rapidTrigger && superSafety
+    },
+  },
+
+  /* ---------- reliability: carrier mass ---------- */
+  {
+    id: 'device-bcg-profile',
+    severity: 'warn',
+    highlight: ['bcg'],
+    // Forced-reset timing depends on carrier mass/velocity. A lighter semi
+    // (AR-15) profile carrier makes reset timing fussy; a full-auto (M16)
+    // profile carrier is the reliable choice.
+    message:
+      'Forced-reset / Super-Safety builds want a full-auto-profile (heavier) BCG for consistent reset timing — you have a semi-profile carrier.',
+    test: (ctx) => {
+      const { hasDevice } = devices(ctx)
+      return hasDevice && ctx.selected.bcg?.bcgProfile === 'semi'
+    },
+  },
+
+  /* ---------- reliability: buffer tuning ---------- */
+  {
+    id: 'device-buffer-tuning',
+    severity: 'warn',
+    highlight: ['buffer'],
+    // Reset timing is buffer-sensitive. A standard carbine buffer is often too
+    // light and leads to short-stroking or doubling; H2 is the usual baseline.
+    message:
+      'Reset timing is buffer-sensitive and a standard carbine buffer is often too light — step up to an H2 (or H3) buffer as your reliable starting point.',
+    test: (ctx) => {
+      const { hasDevice } = devices(ctx)
+      return hasDevice && ctx.selected.buffer?.bufferWeight === 'carbine'
+    },
+  },
+
+  /* ---------- reliability: gas / dwell ---------- */
   {
     id: 'gas-length-mismatch',
     severity: 'error',
     highlight: ['barrel'],
-    // Gas dwell time = the window the port stays pressurized while the bullet is
-    // still ahead of it. A longer gas system on too short a barrel shortens that
-    // window: rifle-length gas needs ~18"+ of barrel, mid-length needs ~13.5"+.
-    // Too little dwell = not enough impulse to fully cycle the carrier.
+    // Universal cycling check: too long a gas system for the barrel = too little
+    // dwell to cycle at all. Rifle gas needs ~18"+, mid-length needs ~13.5"+.
     message:
-      'Gas system is too long for this barrel — dwell time will be too short to cycle reliably. ' +
-      'Rifle gas wants an 18"+ barrel; mid-length wants ~14"+. Shorten the gas system or lengthen the barrel.',
+      'Gas system is too long for this barrel — dwell time is too short to cycle reliably at all. Rifle gas wants an 18"+ barrel; mid-length wants ~14"+.',
     test: (ctx) => {
       const b = ctx.selected.barrel
       if (!b || b.lengthIn === undefined || !b.gas) return false
@@ -33,16 +113,27 @@ export const RULES: Rule[] = [
     },
   },
   {
+    id: 'device-prefers-carbine-gas',
+    severity: 'tip',
+    highlight: ['barrel'],
+    // Forced-reset devices want a strong, consistent gas impulse. Mid/rifle-gas
+    // barrels run softer; a slightly over-gassed carbine-length system is the
+    // reliable pick.
+    message:
+      'Forced-reset devices run most reliably slightly over-gassed — a carbine-length gas system drives resets harder than mid or rifle gas.',
+    test: (ctx) => {
+      const { hasDevice } = devices(ctx)
+      const gas = ctx.selected.barrel?.gas
+      return hasDevice && (gas === 'mid' || gas === 'rifle')
+    },
+  },
+  {
     id: 'short-barrel-buffer',
     severity: 'warn',
     highlight: ['barrel', 'buffer'],
-    // Very short barrels unlock the gas port earlier and spike bolt velocity.
-    // A heavier buffer (H2/H3) slows the carrier back down so timing stays sane
-    // and the bolt doesn't try to strip the next round before the mag follower
-    // is ready.
+    // Very short barrels spike bolt velocity; a heavier buffer keeps timing sane.
     message:
-      'Sub-11.5" barrel with a standard carbine buffer tends to over-run. ' +
-      'Step up to an H2 or H3 buffer to tame bolt velocity.',
+      'Sub-11.5" barrel with a standard carbine buffer over-runs — step up to an H2/H3 buffer to tame bolt velocity.',
     test: (ctx) => {
       const b = ctx.selected.barrel
       const buf = ctx.selected.buffer
@@ -50,33 +141,16 @@ export const RULES: Rule[] = [
       return b.lengthIn < 11.5 && buf.bufferWeight === 'carbine'
     },
   },
-  {
-    id: 'selector-trigger-conflict',
-    severity: 'error',
-    highlight: ['selector', 'trigger'],
-    // Geissele hammers have a taller/reshaped profile that can bind against the
-    // shelf of a standard (mil-spec-geometry) ambidextrous selector on the right
-    // side. The Atrius G-Lever is relieved for exactly this and resolves it.
-    message:
-      'Geissele-type trigger + mil-spec-geometry ambi selector can bind. ' +
-      'Switch the selector to the Atrius G-Lever (relieved for Geissele hammers) to clear it.',
-    test: (ctx) => {
-      const trig = ctx.selected.trigger
-      const sel = ctx.selected.selector
-      if (!trig || !sel) return false
-      return trig.triggerType === 'geissele' && sel.selectorType === 'mil-spec'
-    },
-  },
+
+  /* ---------- clearance ---------- */
   {
     id: 'handguard-clearance',
     severity: 'warn',
     highlight: ['handguard', 'barrel'],
-    // A handguard as long as (or longer than) the barrel leaves no room for the
-    // muzzle device / gas block to sit clear of the rail — the rail runs past
-    // the muzzle or crowds the gas block.
+    // A handguard as long as the barrel leaves no room for the muzzle device /
+    // gas block to clear the rail.
     message:
-      'Handguard is as long as the barrel — the muzzle device or gas block may not clear the rail. ' +
-      'Drop to a shorter handguard.',
+      'Handguard is as long as the barrel — the muzzle device or gas block may not clear the rail. Drop to a shorter handguard.',
     test: (ctx) => {
       const b = ctx.selected.barrel
       const hg = ctx.selected.handguard
@@ -84,35 +158,21 @@ export const RULES: Rule[] = [
       return hg.lengthIn >= b.lengthIn
     },
   },
+
+  /* ---------- legal reality ---------- */
   {
-    id: 'cqb-barrel-too-long',
+    id: 'device-legal',
     severity: 'tip',
-    appliesToArchetype: ['cqb'],
-    highlight: ['barrel'],
-    // Goal-fit: a CQB gun lives on maneuverability. Past ~16" the extra length
-    // works against you indoors and around vehicles.
+    // Not mechanical, but the single most important thing about these builds.
     message:
-      'For a CQB build this barrel is on the long side — a 10.5–14.5" barrel handles tighter in close quarters.',
-    test: (ctx) => {
-      const b = ctx.selected.barrel
-      if (!b || b.lengthIn === undefined) return false
-      return b.lengthIn > 16
-    },
+      'Legal check: this build includes a forced-reset / binary / three-way device. ATF classification of these is contested and many states ban them — see the compliance note and confirm current law before buying.',
+    test: (ctx) => devices(ctx).hasDevice,
   },
-  {
-    id: 'budget-premium-optic',
-    severity: 'tip',
-    highlight: ['optic'],
-    // Goal-fit: at the Budget price level, a premium optic alone can cost more
-    // than the rest of the build combined.
-    message:
-      'A premium optic on a Budget build blows the price band on its own — a quality red dot gets you most of the way for a fraction of the cost.',
-    test: (ctx) => ctx.budgetLevel === 'budget' && ctx.selected.optic?.tier === 'Premium',
-  },
+
+  /* ---------- budget ---------- */
   {
     id: 'over-price-band',
     severity: 'tip',
-    // Goal-fit: total exceeds the target band for this archetype + budget level.
     message:
       'Running total is above the target price band for this build — trim a tier somewhere or step up your budget level.',
     test: (ctx) => ctx.total > 0 && ctx.total > ctx.bandMax,
