@@ -24,6 +24,20 @@
 .header {
   margin-bottom: 22px;
 }
+.back {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 5px 10px;
+  font-size: 12px;
+  color: var(--text-dim);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+.back:hover {
+  border-color: var(--brass);
+  color: var(--brass);
+}
 .title {
   margin: 0 0 8px;
   font-size: 28px;
@@ -72,11 +86,20 @@
   flex: 1;
 }
 .band {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--brass);
   align-self: flex-start;
   padding: 3px 8px;
   border: 1px solid var(--brass-line);
   border-radius: 4px;
   background: var(--brass-dim);
+}
+.estimate {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.step1cta {
+  font-size: 12px;
+  color: var(--brass);
+  margin-top: 2px;
 }

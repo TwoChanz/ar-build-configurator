@@ -1,3 +1,8 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+}
+
 .row {
   display: grid;
   grid-template-columns: auto 1fr auto;
@@ -10,6 +15,23 @@
   border-radius: var(--radius-sm);
   text-align: left;
   transition: border-color 0.15s, background 0.15s, transform 0.05s;
+}
+.wrapSelected .row {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.desc {
+  margin: 0;
+  padding: 9px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-dim);
+  background: var(--surface);
+  border: 1px solid var(--brass);
+  border-top: 0;
+  border-bottom-left-radius: var(--radius-sm);
+  border-bottom-right-radius: var(--radius-sm);
 }
 .row:hover {
   border-color: var(--text-dim);

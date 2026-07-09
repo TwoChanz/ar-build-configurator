@@ -3,6 +3,8 @@ import type { ReactNode } from 'react'
 
 import type { MeshKey } from '../types'
 
+export type OpticStyle = 'reddot' | 'lpvo'
+
 interface RifleModelProps {
   /** Mesh groups to light up in brass (from selection / open category / insight). */
   highlight: MeshKey[]
@@ -10,6 +12,12 @@ interface RifleModelProps {
   configured: MeshKey[]
   /** BCG rides inside the upper — only render it when it's actually selected. */
   showBcg: boolean
+  /** Barrel length in inches — drives barrel + muzzle position. */
+  barrelIn: number
+  /** Handguard rail length in inches — drives handguard reach. */
+  handguardIn: number
+  /** Optic silhouette to render based on the selected optic. */
+  opticStyle: OpticStyle
 }
 
 /* machined-steel + brass material states */
@@ -29,7 +37,6 @@ const STEEL: Mat = {
   roughness: 0.52,
 }
 const TINT: Mat = {
-  // Configured parts: cool steel with just a faint warm lean — NOT full brass.
   color: '#47484a',
   emissive: '#c8963e',
   emissiveIntensity: 0.035,
@@ -68,7 +75,7 @@ function Piece({
 }) {
   const m = matFor(meshKey, hi, cfg)
   return (
-    <mesh position={position} rotation={rotation} castShadow>
+    <mesh position={position} rotation={rotation} castShadow receiveShadow>
       {children}
       <meshStandardMaterial
         color={m.color}
@@ -82,119 +89,231 @@ function Piece({
 }
 
 const HALF_PI = Math.PI / 2
+const IN = 0.19 // 3D units per inch of barrel/handguard
+const X0 = 0.05 // chamber: front face of the upper receiver
+const BORE_Y = 0.3 // barrel centerline height
 
 /**
- * A blocked-out AR-15 schematic — abstract "where does each part go", not a
- * dimensioned or photoreal model. Each component group is keyed to a meshKey.
+ * A blocked-out but recognizably-shaped AR-15 schematic — abstract, not
+ * photoreal. Each component group is keyed to a meshKey. Barrel + handguard
+ * geometry is parametric: longer parts push the model out further.
  */
-export function RifleModel({ highlight, configured, showBcg }: RifleModelProps) {
+export function RifleModel({
+  highlight,
+  configured,
+  showBcg,
+  barrelIn,
+  handguardIn,
+  opticStyle,
+}: RifleModelProps) {
   const hi = useMemo(() => new Set(highlight), [highlight])
   const cfg = useMemo(() => new Set(configured), [configured])
 
+  const bl = barrelIn * IN // barrel length in units
+  const hl = handguardIn * IN // handguard length in units
+  const barrelCenter = X0 + bl / 2
+  const muzzleX = X0 + bl + 0.2
+  const hgStart = X0 + 0.04
+  const hgCenter = hgStart + hl / 2
+  const gasBlockX = X0 + bl * 0.52
+  const gasTubeRear = -0.35
+  const gasTubeCenter = (gasBlockX + gasTubeRear) / 2
+  const gasTubeLen = gasBlockX - gasTubeRear
+
   return (
-    <group position={[0, 0, 0]}>
-      {/* Stock */}
-      <Piece meshKey="stock" hi={hi} cfg={cfg} position={[-3.05, 0.06, 0]}>
-        <boxGeometry args={[1.05, 0.58, 0.5]} />
+    <group position={[0, -0.1, 0]}>
+      {/* ---------- Stock (buttstock body + comb + buttpad) ---------- */}
+      <Piece meshKey="stock" hi={hi} cfg={cfg} position={[-3.0, 0.12, 0]}>
+        <boxGeometry args={[0.7, 0.5, 0.5]} />
+      </Piece>
+      <Piece meshKey="stock" hi={hi} cfg={cfg} position={[-2.82, 0.42, 0]}>
+        <boxGeometry args={[0.55, 0.12, 0.32]} />
+      </Piece>
+      <Piece meshKey="stock" hi={hi} cfg={cfg} position={[-3.38, 0.06, 0]}>
+        <boxGeometry args={[0.12, 0.62, 0.5]} />
       </Piece>
 
-      {/* Buffer tube (buffer system) */}
-      <Piece meshKey="buffer" hi={hi} cfg={cfg} position={[-2.25, 0.12, 0]} rotation={[0, 0, HALF_PI]}>
-        <cylinderGeometry args={[0.15, 0.15, 1.05, 20]} />
+      {/* ---------- Buffer tube ---------- */}
+      <Piece meshKey="buffer" hi={hi} cfg={cfg} position={[-2.28, 0.16, 0]} rotation={[0, 0, HALF_PI]}>
+        <cylinderGeometry args={[0.13, 0.13, 1.05, 20]} />
       </Piece>
 
-      {/* Lower receiver + magwell (same group) */}
+      {/* ---------- Lower receiver + magwell ---------- */}
       <Piece meshKey="lower" hi={hi} cfg={cfg} position={[-1.35, 0.0, 0]}>
-        <boxGeometry args={[1.05, 0.44, 0.42]} />
+        <boxGeometry args={[1.1, 0.44, 0.42]} />
       </Piece>
-      <Piece meshKey="lower" hi={hi} cfg={cfg} position={[-1.28, -0.5, 0]}>
-        <boxGeometry args={[0.4, 0.72, 0.4]} />
+      <Piece meshKey="lower" hi={hi} cfg={cfg} position={[-1.24, -0.42, 0]}>
+        <boxGeometry args={[0.44, 0.66, 0.4]} />
+      </Piece>
+      {/* Magazine (curved-ish, canted forward) */}
+      <Piece meshKey="lower" hi={hi} cfg={cfg} position={[-1.18, -1.02, 0]} rotation={[0, 0, -0.14]}>
+        <boxGeometry args={[0.34, 0.95, 0.36]} />
       </Piece>
 
-      {/* Trigger */}
-      <Piece meshKey="trigger" hi={hi} cfg={cfg} position={[-1.5, -0.34, 0]}>
-        <boxGeometry args={[0.14, 0.2, 0.22]} />
+      {/* ---------- Trigger + guard ---------- */}
+      <Piece meshKey="trigger" hi={hi} cfg={cfg} position={[-1.5, -0.3, 0]}>
+        <boxGeometry args={[0.12, 0.2, 0.2]} />
+      </Piece>
+      <Piece meshKey="trigger" hi={hi} cfg={cfg} position={[-1.46, -0.46, 0]}>
+        <boxGeometry args={[0.38, 0.05, 0.24]} />
       </Piece>
 
-      {/* Safety selector (side of lower) */}
+      {/* ---------- Safety selector ---------- */}
       <Piece
         meshKey="selector"
         hi={hi}
         cfg={cfg}
-        position={[-1.15, 0.02, 0.24]}
+        position={[-1.12, 0.02, 0.24]}
         rotation={[HALF_PI, 0, 0]}
       >
-        <cylinderGeometry args={[0.1, 0.1, 0.16, 16]} />
+        <cylinderGeometry args={[0.09, 0.09, 0.16, 16]} />
       </Piece>
 
-      {/* Pistol grip */}
-      <Piece
-        meshKey="grip"
-        hi={hi}
-        cfg={cfg}
-        position={[-1.72, -0.5, 0]}
-        rotation={[0, 0, 0.42]}
-      >
-        <boxGeometry args={[0.24, 0.66, 0.36]} />
+      {/* ---------- Pistol grip (body + backstrap) ---------- */}
+      <Piece meshKey="grip" hi={hi} cfg={cfg} position={[-1.72, -0.44, 0]} rotation={[0, 0, 0.4]}>
+        <boxGeometry args={[0.24, 0.6, 0.34]} />
+      </Piece>
+      <Piece meshKey="grip" hi={hi} cfg={cfg} position={[-1.82, -0.5, 0]} rotation={[0, 0, 0.4]}>
+        <boxGeometry args={[0.1, 0.52, 0.34]} />
       </Piece>
 
-      {/* Upper receiver */}
+      {/* ---------- Upper receiver + ejection port + forward assist + top rail ---------- */}
       <Piece meshKey="upper" hi={hi} cfg={cfg} position={[-0.55, 0.3, 0]}>
-        <boxGeometry args={[1.2, 0.42, 0.44]} />
+        <boxGeometry args={[1.25, 0.42, 0.44]} />
+      </Piece>
+      <Piece meshKey="upper" hi={hi} cfg={cfg} position={[-0.4, 0.33, 0.24]}>
+        <boxGeometry args={[0.42, 0.16, 0.05]} />
+      </Piece>
+      <Piece meshKey="upper" hi={hi} cfg={cfg} position={[0.02, 0.34, 0.18]}>
+        <boxGeometry args={[0.1, 0.12, 0.12]} />
+      </Piece>
+      <Piece meshKey="upper" hi={hi} cfg={cfg} position={[-0.55, 0.54, 0]}>
+        <boxGeometry args={[1.15, 0.05, 0.16]} />
       </Piece>
 
-      {/* Bolt carrier group — only shown when selected, nested inside the upper */}
+      {/* ---------- BCG (inside the upper; only when selected) ---------- */}
       {showBcg && (
         <Piece meshKey="bcg" hi={hi} cfg={cfg} position={[-0.55, 0.3, 0]}>
-          <boxGeometry args={[0.9, 0.22, 0.22]} />
+          <boxGeometry args={[0.98, 0.2, 0.2]} />
         </Piece>
       )}
 
-      {/* Charging handle (rear top of upper) */}
-      <Piece meshKey="chargingHandle" hi={hi} cfg={cfg} position={[-1.05, 0.46, 0]}>
-        <boxGeometry args={[0.32, 0.1, 0.26]} />
+      {/* ---------- Charging handle (T at the rear of the upper) ---------- */}
+      <Piece meshKey="chargingHandle" hi={hi} cfg={cfg} position={[-1.02, 0.5, 0]}>
+        <boxGeometry args={[0.34, 0.06, 0.16]} />
+      </Piece>
+      <Piece meshKey="chargingHandle" hi={hi} cfg={cfg} position={[-1.2, 0.5, 0]}>
+        <boxGeometry args={[0.08, 0.12, 0.28]} />
       </Piece>
 
-      {/* Optic + mount (top rail) */}
-      <Piece meshKey="optic" hi={hi} cfg={cfg} position={[-0.5, 0.64, 0]}>
-        <boxGeometry args={[0.62, 0.26, 0.3]} />
-      </Piece>
-      <Piece meshKey="optic" hi={hi} cfg={cfg} position={[-0.5, 0.52, 0]}>
-        <boxGeometry args={[0.5, 0.06, 0.18]} />
-      </Piece>
+      {/* ---------- Optic (style depends on the selected optic) ---------- */}
+      <Optic style={opticStyle} hi={hi} cfg={cfg} />
 
-      {/* Handguard (hex tube around the barrel) */}
+      {/* ---------- Handguard (hex M-LOK tube + top rail), parametric length ---------- */}
       <Piece
         meshKey="handguard"
         hi={hi}
         cfg={cfg}
-        position={[0.85, 0.3, 0]}
-        rotation={[0, 0, HALF_PI]}
+        position={[hgCenter, BORE_Y, 0]}
+        rotation={[HALF_PI, 0, 0]}
       >
-        <cylinderGeometry args={[0.22, 0.22, 1.7, 6]} />
+        <cylinderGeometry args={[0.2, 0.2, hl, 6]} />
+      </Piece>
+      <Piece meshKey="handguard" hi={hi} cfg={cfg} position={[hgCenter, BORE_Y + 0.2, 0]}>
+        <boxGeometry args={[hl * 0.94, 0.05, 0.14]} />
       </Piece>
 
-      {/* Barrel (runs through the handguard, out the front) */}
+      {/* ---------- Barrel + gas block + gas tube, parametric length ---------- */}
       <Piece
         meshKey="barrel"
         hi={hi}
         cfg={cfg}
-        position={[1.35, 0.3, 0]}
+        position={[barrelCenter, BORE_Y, 0]}
         rotation={[0, 0, HALF_PI]}
       >
-        <cylinderGeometry args={[0.08, 0.08, 3.4, 20]} />
+        <cylinderGeometry args={[0.07, 0.07, bl, 20]} />
+      </Piece>
+      <Piece meshKey="barrel" hi={hi} cfg={cfg} position={[gasBlockX, BORE_Y + 0.14, 0]}>
+        <boxGeometry args={[0.16, 0.16, 0.16]} />
+      </Piece>
+      <Piece
+        meshKey="barrel"
+        hi={hi}
+        cfg={cfg}
+        position={[gasTubeCenter, BORE_Y + 0.17, 0]}
+        rotation={[0, 0, HALF_PI]}
+      >
+        <cylinderGeometry args={[0.02, 0.02, gasTubeLen, 10]} />
       </Piece>
 
-      {/* Muzzle device */}
+      {/* ---------- Muzzle device (brake body + port slots) ---------- */}
       <Piece
         meshKey="muzzle"
         hi={hi}
         cfg={cfg}
-        position={[3.0, 0.3, 0]}
+        position={[muzzleX, BORE_Y, 0]}
         rotation={[0, 0, HALF_PI]}
       >
-        <cylinderGeometry args={[0.12, 0.12, 0.4, 18]} />
+        <cylinderGeometry args={[0.1, 0.1, 0.4, 18]} />
+      </Piece>
+      <Piece meshKey="muzzle" hi={hi} cfg={cfg} position={[muzzleX - 0.06, BORE_Y + 0.05, 0]}>
+        <boxGeometry args={[0.03, 0.16, 0.16]} />
+      </Piece>
+      <Piece meshKey="muzzle" hi={hi} cfg={cfg} position={[muzzleX + 0.06, BORE_Y + 0.05, 0]}>
+        <boxGeometry args={[0.03, 0.16, 0.16]} />
       </Piece>
     </group>
+  )
+}
+
+/** Optic silhouette: a compact red dot, or a longer LPVO with turret + bells. */
+function Optic({
+  style,
+  hi,
+  cfg,
+}: {
+  style: OpticStyle
+  hi: Set<MeshKey>
+  cfg: Set<MeshKey>
+}) {
+  const OPTIC_Y = 0.68
+  if (style === 'lpvo') {
+    return (
+      <>
+        {/* main tube */}
+        <Piece meshKey="optic" hi={hi} cfg={cfg} position={[-0.5, OPTIC_Y, 0]} rotation={[0, 0, HALF_PI]}>
+          <cylinderGeometry args={[0.09, 0.09, 0.9, 20]} />
+        </Piece>
+        {/* ocular + objective bells */}
+        <Piece meshKey="optic" hi={hi} cfg={cfg} position={[-0.95, OPTIC_Y, 0]} rotation={[0, 0, HALF_PI]}>
+          <cylinderGeometry args={[0.12, 0.1, 0.14, 20]} />
+        </Piece>
+        <Piece meshKey="optic" hi={hi} cfg={cfg} position={[-0.05, OPTIC_Y, 0]} rotation={[0, 0, HALF_PI]}>
+          <cylinderGeometry args={[0.1, 0.12, 0.14, 20]} />
+        </Piece>
+        {/* elevation turret */}
+        <Piece meshKey="optic" hi={hi} cfg={cfg} position={[-0.5, OPTIC_Y + 0.14, 0]}>
+          <cylinderGeometry args={[0.08, 0.08, 0.12, 16]} />
+        </Piece>
+        {/* rings */}
+        <Piece meshKey="optic" hi={hi} cfg={cfg} position={[-0.78, OPTIC_Y - 0.08, 0]}>
+          <boxGeometry args={[0.08, 0.2, 0.16]} />
+        </Piece>
+        <Piece meshKey="optic" hi={hi} cfg={cfg} position={[-0.22, OPTIC_Y - 0.08, 0]}>
+          <boxGeometry args={[0.08, 0.2, 0.16]} />
+        </Piece>
+      </>
+    )
+  }
+  // red dot: riser + short tube + hood
+  return (
+    <>
+      <Piece meshKey="optic" hi={hi} cfg={cfg} position={[-0.5, 0.58, 0]}>
+        <boxGeometry args={[0.34, 0.14, 0.2]} />
+      </Piece>
+      <Piece meshKey="optic" hi={hi} cfg={cfg} position={[-0.5, 0.72, 0]} rotation={[0, 0, HALF_PI]}>
+        <cylinderGeometry args={[0.12, 0.12, 0.3, 20]} />
+      </Piece>
+    </>
   )
 }

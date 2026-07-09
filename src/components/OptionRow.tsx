@@ -24,35 +24,37 @@ function attrChips(o: Option): string[] {
 export function OptionRow({ option, rank, selected, onSelect }: OptionRowProps) {
   const chips = attrChips(option)
   return (
-    <button
-      type="button"
-      className={`${styles.row} ${selected ? styles.selected : ''}`}
-      onClick={onSelect}
-      aria-pressed={selected}
-    >
-      <span className={`${styles.rank} mono`}>#{rank}</span>
+    <div className={`${styles.wrap} ${selected ? styles.wrapSelected : ''}`}>
+      <button
+        type="button"
+        className={`${styles.row} ${selected ? styles.selected : ''}`}
+        onClick={onSelect}
+        aria-pressed={selected}
+      >
+        <span className={`${styles.rank} mono`}>#{rank}</span>
 
-      <span className={styles.body}>
-        <span className={styles.brandLine}>
-          <span className={styles.brand}>{option.brand}</span>
-          <span
-            className={`${styles.tier} ${styles[`tier${option.tier}`]} title-caps`}
-          >
-            {option.tier}
+        <span className={styles.body}>
+          <span className={styles.brandLine}>
+            <span className={styles.brand}>{option.brand}</span>
+            <span className={`${styles.tier} ${styles[`tier${option.tier}`]} title-caps`}>
+              {option.tier}
+            </span>
           </span>
+          {chips.length > 0 && (
+            <span className={styles.chips}>
+              {chips.map((c) => (
+                <span key={c} className={`${styles.chip} mono`}>
+                  {c}
+                </span>
+              ))}
+            </span>
+          )}
         </span>
-        {chips.length > 0 && (
-          <span className={styles.chips}>
-            {chips.map((c) => (
-              <span key={c} className={`${styles.chip} mono`}>
-                {c}
-              </span>
-            ))}
-          </span>
-        )}
-      </span>
 
-      <span className={`${styles.price} mono`}>{usd(option.price)}</span>
-    </button>
+        <span className={`${styles.price} mono`}>{usd(option.price)}</span>
+      </button>
+
+      {selected && <p className={styles.desc}>{option.desc}</p>}
+    </div>
   )
 }

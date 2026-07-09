@@ -2,60 +2,81 @@ import { CategoryAccordion } from './CategoryAccordion'
 import { InsightsStrip } from './InsightsStrip'
 import { QuickFillBar } from './QuickFillBar'
 import { TotalBar } from './TotalBar'
-import { COMPLIANCE_NOTE, GOALS, PARTS } from '../data/parts'
+import { ARCHETYPES, BUDGET_LEVELS, COMPLIANCE_NOTE, PARTS } from '../data/parts'
 import { useStore } from '../state/store'
-import type { Goal, Insight } from '../types'
+import type { Archetype, Insight } from '../types'
 import styles from './BuildPanel.module.css'
 
 interface BuildPanelProps {
   total: number
   count: number
   insights: Insight[]
+  priceBand: [number, number]
 }
 
-export function BuildPanel({ total, count, insights }: BuildPanelProps) {
+export function BuildPanel({ total, count, insights, priceBand }: BuildPanelProps) {
   const { state, dispatch } = useStore()
-  const goalDef = GOALS.find((g) => g.id === state.goal) ?? GOALS[GOALS.length - 1]
+  const archDef = ARCHETYPES.find((a) => a.id === state.archetype) ?? ARCHETYPES[ARCHETYPES.length - 1]
+  const levelDef = BUDGET_LEVELS.find((l) => l.id === state.budgetLevel) ?? BUDGET_LEVELS[1]
   const hasManual = Object.keys(state.manual).length > 0
 
   return (
     <aside className={styles.panel}>
       <div className={styles.scroll}>
-        {/* Goal control */}
-        <div className={styles.goalRow}>
-          <label className={styles.goalField}>
-            <span className={`${styles.goalLabel} title-caps`}>Build goal</span>
-            <select
-              className={styles.select}
-              value={state.goal}
-              onChange={(e) => dispatch({ type: 'SET_GOAL', goal: e.target.value as Goal })}
-            >
-              {GOALS.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name}
-                </option>
-              ))}
-            </select>
-          </label>
+        {/* Build type (archetype) */}
+        <label className={styles.field}>
+          <span className={`${styles.fieldLabel} title-caps`}>Build type</span>
+          <select
+            className={styles.select}
+            value={state.archetype}
+            onChange={(e) => dispatch({ type: 'SET_ARCHETYPE', archetype: e.target.value as Archetype })}
+          >
+            {ARCHETYPES.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {/* Price level (segmented) */}
+        <div className={styles.field}>
+          <span className={`${styles.fieldLabel} title-caps`}>Price level</span>
+          <div className={styles.segmented} role="group" aria-label="Price level">
+            {BUDGET_LEVELS.map((lvl) => (
+              <button
+                key={lvl.id}
+                type="button"
+                className={`${styles.seg} ${state.budgetLevel === lvl.id ? styles.segActive : ''} title-caps`}
+                aria-pressed={state.budgetLevel === lvl.id}
+                onClick={() => dispatch({ type: 'SET_BUDGET', budgetLevel: lvl.id })}
+              >
+                {lvl.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className={styles.goalMeta}>
+          <p className={styles.goalBlurb}>
+            {archDef.blurb}
+            {hasManual && (
+              <span className={styles.manualNote}> · Your manual picks stay until you apply.</span>
+            )}
+          </p>
           <button
             type="button"
             className={`${styles.applyBtn} title-caps`}
             onClick={() => dispatch({ type: 'APPLY_SUGGESTIONS' })}
-            title="Overwrite the build with this goal's suggested parts"
+            title={`Fill the build with ${archDef.name} parts at the ${levelDef.name} level`}
           >
             Apply suggestions
           </button>
         </div>
-        <p className={styles.goalBlurb}>
-          {goalDef.blurb}
-          {hasManual && (
-            <span className={styles.manualNote}> · Your manual picks stay until you apply.</span>
-          )}
-        </p>
 
         <QuickFillBar />
 
-        <InsightsStrip insights={insights} goalName={goalDef.name} />
+        <InsightsStrip insights={insights} goalName={`${archDef.name} · ${levelDef.name}`} />
 
         <div className={styles.categories}>
           {PARTS.map((cat, i) => (
@@ -83,8 +104,8 @@ export function BuildPanel({ total, count, insights }: BuildPanelProps) {
         <TotalBar
           total={total}
           count={count}
-          priceBand={goalDef.priceBand}
-          showBand={state.goal !== 'none'}
+          priceBand={priceBand}
+          showBand={state.archetype !== 'none'}
         />
       </div>
     </aside>

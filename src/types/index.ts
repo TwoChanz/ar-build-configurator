@@ -1,6 +1,6 @@
 /**
  * Shared domain types for the AR build configurator.
- * No `any` anywhere — every selection, goal, and derived insight is typed.
+ * No `any` anywhere — every selection, archetype, tier, and derived insight is typed.
  */
 
 /* ---------- Parts catalog ---------- */
@@ -26,13 +26,15 @@ export type TriggerType =
 /**
  * A single purchasable option within a category, ordered best -> value.
  * The optional fields are rule-relevant attributes; only the categories that
- * need them populate them, so adding a plain option stays a 3-field object.
+ * need them populate them, so adding a plain option stays a small object.
  */
 export interface Option {
   id: string
   brand: string
   tier: Tier
   price: number
+  /** Short history / capability blurb, revealed when the option is selected. */
+  desc: string
 
   /** Barrel: overall barrel length in inches. Handguard: rail length in inches. */
   lengthIn?: number
@@ -76,35 +78,41 @@ export interface Category {
   options: Option[]
 }
 
+/* ---------- Build archetype (purpose) — independent of price ---------- */
+
+export type Archetype = 'general' | 'cqb' | 'truck' | 'range' | 'lightweight' | 'none'
+
+/** A per-budget-level option choice for a category (falls back to tier best). */
+export type LevelChoice = Partial<Record<BudgetLevel, string>>
+
+export interface ArchetypeDef {
+  id: Archetype
+  name: string
+  blurb: string
+  /**
+   * Character-defining part choices, per budget level. e.g. a CQB build picks a
+   * short barrel + red dot regardless of price; the level only shifts quality.
+   * Anything not listed falls back to the best option at the level's tier.
+   */
+  overrides?: Partial<Record<CategoryId, LevelChoice>>
+}
+
+/* ---------- Budget level (price) — independent of archetype ---------- */
+
+export type BudgetLevel = 'budget' | 'mid' | 'high'
+
+export interface BudgetLevelDef {
+  id: BudgetLevel
+  name: string
+  blurb: string
+  /** Which catalog tier fills categories the archetype doesn't pin. */
+  tier: Tier
+}
+
 /* ---------- Selection state ---------- */
 
 /** Maps a category id to the chosen option id. Partial — not everything picked. */
 export type Selection = Partial<Record<CategoryId, string>>
-
-/* ---------- Build goals ---------- */
-
-export type Goal =
-  | 'budget-safety'
-  | 'cqb'
-  | 'truck'
-  | 'range'
-  | 'lightweight'
-  | 'none'
-
-export interface GoalDef {
-  id: Goal
-  name: string
-  blurb: string
-  /** Preferred tier when auto-filling defaults. */
-  defaultTier: Tier
-  /** Target price band [min, max] for the whole build (planning estimate). */
-  priceBand: [number, number]
-  /**
-   * Per-category default option overrides (by option id). Anything not listed
-   * falls back to the best option at `defaultTier`.
-   */
-  overrides?: Partial<Record<CategoryId, string>>
-}
 
 /* ---------- Compatibility + insight engine ---------- */
 
@@ -116,10 +124,13 @@ export type Severity = 'error' | 'warn' | 'tip'
  * directly.
  */
 export interface BuildContext {
-  goal: Goal
+  archetype: Archetype
+  budgetLevel: BudgetLevel
   selected: Partial<Record<CategoryId, Option>>
   /** Running total of the currently-selected options. */
   total: number
+  /** Top of the target price band for the current archetype + level. */
+  bandMax: number
 }
 
 /**
@@ -133,8 +144,8 @@ export interface Rule {
   message: string
   /** Returns true when the rule *fires* (i.e. the condition is present). */
   test: (ctx: BuildContext) => boolean
-  /** Only evaluate for these goals. Omit = applies to every goal. */
-  appliesToGoal?: Goal[]
+  /** Only evaluate for these archetypes. Omit = applies to every archetype. */
+  appliesToArchetype?: Archetype[]
   /** Component groups this rule references — clicking it highlights them. */
   highlight?: MeshKey[]
 }

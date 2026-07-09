@@ -5,12 +5,16 @@ import { OrbitControls } from '@react-three/drei'
 import type { Group } from 'three'
 
 import { RifleModel } from './RifleModel'
+import type { OpticStyle } from './RifleModel'
 import type { MeshKey } from '../types'
 
 interface SceneProps {
   highlight: MeshKey[]
   configured: MeshKey[]
   showBcg: boolean
+  barrelIn: number
+  handguardIn: number
+  opticStyle: OpticStyle
 }
 
 /** Respect the user's reduced-motion preference (kills the auto-spin). */
@@ -44,7 +48,14 @@ function SpinRig({
   return <group ref={ref}>{children}</group>
 }
 
-export function Scene({ highlight, configured, showBcg }: SceneProps) {
+export function Scene({
+  highlight,
+  configured,
+  showBcg,
+  barrelIn,
+  handguardIn,
+  opticStyle,
+}: SceneProps) {
   const reduced = usePrefersReducedMotion()
   const paused = useRef(false)
   const resumeTimer = useRef<number | null>(null)
@@ -83,7 +94,14 @@ export function Scene({ highlight, configured, showBcg }: SceneProps) {
       <pointLight position={[0, 2, 6]} intensity={0.18} color="#c8963e" />
 
       <SpinRig paused={paused} reduced={reduced}>
-        <RifleModel highlight={highlight} configured={configured} showBcg={showBcg} />
+        <RifleModel
+          highlight={highlight}
+          configured={configured}
+          showBcg={showBcg}
+          barrelIn={barrelIn}
+          handguardIn={handguardIn}
+          opticStyle={opticStyle}
+        />
       </SpinRig>
 
       <OrbitControls

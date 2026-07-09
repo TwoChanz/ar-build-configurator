@@ -1,21 +1,11 @@
-import type { Goal, Rule } from '../types'
-import { GOALS } from './parts'
-
-/** Price-band ceilings by goal, derived from GOALS (single source of truth). */
-const BAND_MAX_BY_GOAL = GOALS.reduce(
-  (acc, g) => {
-    acc[g.id] = g.priceBand[1]
-    return acc
-  },
-  {} as Record<Goal, number>,
-)
+import type { Rule } from '../types'
 
 /**
  * RULES — the compatibility + insight engine, expressed as data.
  *
- * Each rule is a pure predicate over the current build. The UI evaluates every
- * rule against the live selection and surfaces ONLY the `message` strings whose
- * `test` returns true. Nothing is invented at runtime.
+ * Each rule is a pure predicate over the current build (BuildContext). The UI
+ * evaluates every rule against the live selection and surfaces ONLY the
+ * `message` strings whose `test` returns true. Nothing is invented at runtime.
  *
  * To add an insight: append one object here. Nothing else changes.
  *
@@ -97,7 +87,7 @@ export const RULES: Rule[] = [
   {
     id: 'cqb-barrel-too-long',
     severity: 'tip',
-    appliesToGoal: ['cqb'],
+    appliesToArchetype: ['cqb'],
     highlight: ['barrel'],
     // Goal-fit: a CQB gun lives on maneuverability. Past ~16" the extra length
     // works against you indoors and around vehicles.
@@ -112,24 +102,19 @@ export const RULES: Rule[] = [
   {
     id: 'budget-premium-optic',
     severity: 'tip',
-    appliesToGoal: ['budget-safety'],
     highlight: ['optic'],
-    // Goal-fit: a premium optic alone can cost more than the whole budget build.
+    // Goal-fit: at the Budget price level, a premium optic alone can cost more
+    // than the rest of the build combined.
     message:
-      'For a budget build, a premium optic blows the price band on its own — a quality red dot gets you most of the way for a fraction of the cost.',
-    test: (ctx) => ctx.selected.optic?.tier === 'Premium',
+      'A premium optic on a Budget build blows the price band on its own — a quality red dot gets you most of the way for a fraction of the cost.',
+    test: (ctx) => ctx.budgetLevel === 'budget' && ctx.selected.optic?.tier === 'Premium',
   },
   {
     id: 'over-price-band',
     severity: 'tip',
-    // Goal-fit: total exceeds the goal's target band. Not evaluated for the
-    // open-ended "No preference" goal (its band is effectively unbounded).
-    appliesToGoal: ['budget-safety', 'cqb', 'truck', 'range', 'lightweight'],
+    // Goal-fit: total exceeds the target band for this archetype + budget level.
     message:
-      'Running total is above the target price band for this goal — trim a tier somewhere or accept the higher budget.',
-    test: (ctx) => {
-      // Guard against an empty build; compare running total to the goal ceiling.
-      return ctx.total > 0 && ctx.total > BAND_MAX_BY_GOAL[ctx.goal]
-    },
+      'Running total is above the target price band for this build — trim a tier somewhere or step up your budget level.',
+    test: (ctx) => ctx.total > 0 && ctx.total > ctx.bandMax,
   },
 ]

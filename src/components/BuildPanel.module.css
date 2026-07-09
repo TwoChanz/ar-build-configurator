@@ -17,20 +17,12 @@
   gap: 14px;
 }
 
-.goalRow {
-  display: flex;
-  align-items: flex-end;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.goalField {
+.field {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  flex: 1;
-  min-width: 160px;
+  gap: 6px;
 }
-.goalLabel {
+.fieldLabel {
   font-size: 11px;
   color: var(--text-dim);
 }
@@ -47,9 +39,51 @@
   border-color: var(--text-dim);
 }
 
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.seg {
+  font-size: 12px;
+  padding: 9px 6px;
+  background: var(--surface-2);
+  color: var(--text-dim);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.seg:hover {
+  border-color: var(--text-dim);
+  color: var(--text);
+}
+.segActive {
+  background: var(--brass-dim);
+  border-color: var(--brass);
+  color: var(--brass);
+}
+
+.goalMeta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.goalBlurb {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.45;
+  flex: 1;
+  min-width: 180px;
+}
+.manualNote {
+  color: var(--brass);
+}
 .applyBtn {
   font-size: 12px;
-  padding: 9px 14px;
+  padding: 8px 14px;
   background: var(--brass-dim);
   color: var(--brass);
   border: 1px solid var(--brass-line);
@@ -58,16 +92,6 @@
 }
 .applyBtn:hover {
   background: rgba(200, 150, 62, 0.24);
-}
-
-.goalBlurb {
-  margin: 0;
-  font-size: 12px;
-  color: var(--text-dim);
-  line-height: 1.45;
-}
-.manualNote {
-  color: var(--brass);
 }
 
 .categories {
